@@ -16,13 +16,17 @@ const props = defineProps({
     type: String,
     default: ""
   },
+  isFirstColumn: {
+    type: Boolean,
+    default: false
+  },
   isLastColumn: {
     type: Boolean,
     default: false
   }
 })
 
-const emit = defineEmits(["move-task"])
+const emit = defineEmits(["move-task", "move-task-back", "delete-task"])
 
 function handleMoveToNextColumn() {
   if (props.isLastColumn) {
@@ -30,6 +34,24 @@ function handleMoveToNextColumn() {
   }
 
   emit("move-task", {
+    taskId: props.id,
+    fromColumnId: props.columnId
+  })
+}
+
+function handleMoveToPreviousColumn() {
+  if (props.isFirstColumn) {
+    return
+  }
+
+  emit("move-task-back", {
+    taskId: props.id,
+    fromColumnId: props.columnId
+  })
+}
+
+function handleDeleteTask() {
+  emit("delete-task", {
     taskId: props.id,
     fromColumnId: props.columnId
   })
@@ -46,16 +68,34 @@ function handleMoveToNextColumn() {
       {{ props.description }}
     </p>
 
-    <div class="mt-3 flex justify-end">
+    <div class="mt-3 flex justify-between items-center gap-2">
+      <div class="flex gap-1">
+        <button
+            v-if="!props.isFirstColumn"
+            type="button"
+            class="text-[11px] px-2 py-1 rounded bg-gray-700 hover:bg-gray-600 text-gray-100"
+            @click="handleMoveToPreviousColumn"
+        >
+          Vorige kolom
+        </button>
+
+        <button
+            v-if="!props.isLastColumn"
+            type="button"
+            class="text-[11px] px-2 py-1 rounded bg-gray-700 hover:bg-gray-600 text-gray-100"
+            @click="handleMoveToNextColumn"
+        >
+          Volgende kolom
+        </button>
+      </div>
+
       <button
-          v-if="!props.isLastColumn"
           type="button"
-          class="text-[11px] px-2 py-1 rounded bg-gray-700 hover:bg-gray-600 text-gray-100"
-          @click="handleMoveToNextColumn"
+          class="text-[11px] px-2 py-1 rounded bg-red-700 hover:bg-red-600 text-gray-100"
+          @click="handleDeleteTask"
       >
-        Naar volgende kolom
+        Verwijderen
       </button>
     </div>
   </article>
 </template>
-

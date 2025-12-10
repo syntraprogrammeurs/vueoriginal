@@ -97,17 +97,59 @@ function handleMoveTask(payload) {
   const toColumn = columns.value[toColumnIndex]
   toColumn.tasks.push(task)
 }
-</script>
 
+function handleMoveTaskBack(payload) {
+  const { taskId, fromColumnId } = payload
+
+  const fromColumnIndex = columns.value.findIndex(col => col.id === fromColumnId)
+  if (fromColumnIndex === -1) {
+    return
+  }
+
+  const fromColumn = columns.value[fromColumnIndex]
+
+  const taskIndex = fromColumn.tasks.findIndex(task => task.id === taskId)
+  if (taskIndex === -1) {
+    return
+  }
+
+  const [task] = fromColumn.tasks.splice(taskIndex, 1)
+
+  const toColumnIndex = fromColumnIndex - 1
+  if (toColumnIndex < 0) {
+    fromColumn.tasks.splice(taskIndex, 0, task)
+    return
+  }
+
+  const toColumn = columns.value[toColumnIndex]
+  toColumn.tasks.push(task)
+}
+
+function handleDeleteTask(payload) {
+  const { taskId, fromColumnId } = payload
+
+  const column = columns.value.find(col => col.id === fromColumnId)
+  if (!column) {
+    return
+  }
+
+  const taskIndex = column.tasks.findIndex(task => task.id === taskId)
+  if (taskIndex === -1) {
+    return
+  }
+
+  column.tasks.splice(taskIndex, 1)
+}
+</script>
 
 <template>
   <main class="min-h-screen bg-gray-900 text-white px-6 py-8">
     <header class="mb-6">
       <h1 class="text-2xl font-bold">
-        Mijn kanban board (taken naar volgende kolom verplaatsen)
+        Mijn kanban board (taken verplaatsen en verwijderen)
       </h1>
       <p class="text-gray-400 text-sm mt-1">
-        Kolommen en kaarten worden dynamisch weergegeven op basis van data. Met de knop op elke kaart kun je taken naar de volgende kolom verplaatsen.
+        Taken kunnen nu niet alleen naar de volgende kolom verplaatst worden, maar ook terug naar de vorige kolom. Bovendien kun je taken verwijderen.
       </p>
     </header>
 
@@ -127,12 +169,13 @@ function handleMoveTask(payload) {
             :column-id="column.id"
             :title="task.title"
             :description="task.description"
+            :is-first-column="columnIndex === 0"
             :is-last-column="columnIndex === columns.length - 1"
             @move-task="handleMoveTask"
+            @move-task-back="handleMoveTaskBack"
+            @delete-task="handleDeleteTask"
         />
       </BoardColumn>
     </section>
   </main>
 </template>
-
-
