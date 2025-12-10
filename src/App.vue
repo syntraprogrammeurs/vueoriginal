@@ -70,22 +70,50 @@ function handleAddTaskToColumn(payload) {
     description
   })
 }
+
+function handleMoveTask(payload) {
+  const { taskId, fromColumnId } = payload
+
+  const fromColumnIndex = columns.value.findIndex(col => col.id === fromColumnId)
+  if (fromColumnIndex === -1) {
+    return
+  }
+
+  const fromColumn = columns.value[fromColumnIndex]
+
+  const taskIndex = fromColumn.tasks.findIndex(task => task.id === taskId)
+  if (taskIndex === -1) {
+    return
+  }
+
+  const [task] = fromColumn.tasks.splice(taskIndex, 1)
+
+  const toColumnIndex = fromColumnIndex + 1
+  if (toColumnIndex >= columns.value.length) {
+    fromColumn.tasks.splice(taskIndex, 0, task)
+    return
+  }
+
+  const toColumn = columns.value[toColumnIndex]
+  toColumn.tasks.push(task)
+}
 </script>
+
 
 <template>
   <main class="min-h-screen bg-gray-900 text-white px-6 py-8">
     <header class="mb-6">
       <h1 class="text-2xl font-bold">
-        Mijn kanban board (per kolom taken toevoegen)
+        Mijn kanban board (taken naar volgende kolom verplaatsen)
       </h1>
       <p class="text-gray-400 text-sm mt-1">
-        Kolommen en kaarten worden gegenereerd op basis van JavaScript data. Nieuwe taken worden per kolom toegevoegd via een formulier binnen die kolom.
+        Kolommen en kaarten worden dynamisch weergegeven op basis van data. Met de knop op elke kaart kun je taken naar de volgende kolom verplaatsen.
       </p>
     </header>
 
     <section class="flex gap-6 overflow-x-auto pb-4">
       <BoardColumn
-          v-for="column in columns"
+          v-for="(column, columnIndex) in columns"
           :key="column.id"
           :id="column.id"
           :title="column.title"
@@ -95,11 +123,16 @@ function handleAddTaskToColumn(payload) {
         <TaskCard
             v-for="task in column.tasks"
             :key="task.id"
+            :id="task.id"
+            :column-id="column.id"
             :title="task.title"
             :description="task.description"
+            :is-last-column="columnIndex === columns.length - 1"
+            @move-task="handleMoveTask"
         />
       </BoardColumn>
     </section>
   </main>
 </template>
+
 
